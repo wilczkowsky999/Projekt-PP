@@ -1,64 +1,68 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "hero.h"
+
+void czysc() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        printf("Blad: Podaj nazwe pliku bazy jako argument!\n");
+        printf("Blad! Podaj plik bazy danych jako argument.\n");
         return 1;
     }
-
-    char* filename = argv[1];
-    Hero* list = load_from_file(filename);
-    int choice;
-    char n[101], r[50], c[50], s[20], search_n[101];
-    int l, rep, min_l;
-
+    Hero* head = wczytaj(argv[1]);
+    int opcja = 0;
     do {
-        printf("\n--- GILDIA BOHATEROW ---\n");
-        printf("1. Dodaj bohatera\n");
-        printf("2. Wyswietl wszystkich\n");
-        printf("3. Usun bohatera\n");
-        printf("4. Szukaj (nazwa + lvl)\n");
-        printf("5. Sortuj po poziomie\n");
-        printf("6. Zapisz i Wyjdz\n");
-        printf("Wybor: ");
+        printf("\n==========================================");
+        printf("\n    REJESTR GILDII POSZUKIWACZY PRZYGOD   ");
+        printf("\n==========================================");
+        printf("\n1. Rejestracja nowego czlonka");
+        printf("\n2. Wyswietl pelna liste bohaterow");
+        printf("\n3. Usun bohatera z ewidencji");
+        printf("\n4. Modyfikuj dane bohatera");
+        printf("\n5. Szukaj (po imieniu i poziomie)");
+        printf("\n6. Sortuj liste alfabetycznie");
+        printf("\n7. Zapisz i Wyjdz");
+        printf("\n==========================================");
+        printf("\nWybor: ");
         
-        if (scanf("%d", &choice) != 1) break;
-
-        switch (choice) {
-            case 1:
-                printf("Imie: "); scanf("%s", n);
-                printf("Rasa: "); scanf("%s", r);
-                printf("Klasa: "); scanf("%s", c);
-                printf("Poziom i Reputacja: "); scanf("%d %d", &l, &rep);
-                printf("Status: "); scanf("%s", s);
-                list = add_hero(list, n, r, c, l, rep, s);
-                break;
-            case 2:
-                display_all(list);
-                break;
-            case 3:
-                printf("Podaj imie do usuniecia: "); scanf("%s", n);
-                list = delete_hero(list, n);
-                break;
-            case 4:
-                printf("Fragment imienia: "); scanf("%s", search_n);
-                printf("Minimalny poziom: "); scanf("%d", &min_l);
-                find_hero(list, search_n, min_l);
-                break;
-            case 5:
-                sort_by_level(list);
-                display_all(list);
-                break;
-            case 6:
-                save_to_file(list, filename);
-                printf("Dane zapisane. Do widzenia!\n");
-                break;
+        if (scanf("%d", &opcja) != 1) { czysc(); continue; }
+        czysc();
+        
+        if (opcja == 1) {
+            char i[101], r[50], k[50], s[20];
+            int p, rep;
+            printf("\n--- REJESTRACJA ---");
+            printf("\nImie (unikalne): "); scanf("%100s", i); czysc();
+            printf("Rasa (Czlowiek, Elf, Krasnolud, Ork, Tiefling): "); scanf("%49s", r); czysc();
+            printf("Klasa (Wojownik, Mag, Kaplan, Lotrzyk, Lowca, Druid, Tropiciel, Alchemik, Bard): "); scanf("%49s", k); czysc();
+            printf("Poziom: "); scanf("%d", &p); czysc();
+            printf("Reputacja (0-100): "); scanf("%d", &rep); czysc();
+            printf("Status (Aktywny, Misja, Ranny, Zaginiony, Zawieszony): "); scanf("%19s", s); czysc();
+            head = dodaj(head, i, r, k, p, rep, s);
+        } else if (opcja == 2) {
+            wyswietl(head);
+        } else if (opcja == 3) {
+            char imie[101];
+            printf("\nPodaj imie do usuniecia: "); scanf("%100s", imie);
+            head = usun(head, imie);
+        } else if (opcja == 4) {
+            char imie[101];
+            printf("\nPodaj imie do edycji: "); scanf("%100s", imie);
+            edytuj(head, imie);
+        } else if (opcja == 5) {
+            char f[101]; int minP;
+            printf("\nFraza imienia: "); scanf("%100s", f);
+            printf("Minimalny poziom: "); scanf("%d", &minP);
+            znajdz(head, f, minP);
+        } else if (opcja == 6) {
+            sortuj(head);
+            printf("\n[INFO] Lista zostala posortowana alfabetycznie.");
         }
-    } while (choice != 6);
+    } while (opcja != 7);
 
-    free_list(list);
+    zapisz(head, argv[1]);
+    zwolnij_liste(head);
+    printf("\n[INFO] Dane zapisane w %s. Powodzenia na szlaku!\n", argv[1]);
     return 0;
 }
